@@ -1,0 +1,188 @@
+/* =========================================================
+   VUNA CALCULATOR — David Zasan Elisha
+   SEN 482 · Set 2025/26 Software Engineering
+   ========================================================= */
+
+/* Google Font — Syne (display) + DM Mono (digits) */
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Mono:wght@400;500&display=swap');
+
+/* ── CSS Variables ─────────────────────────────────────── */
+:root {
+  --bg:           #eef0f5;
+  --card-bg:      #ffffff;
+  --header-bg:    #0f172a;
+  --display-bg:   #0f172a;
+  --display-text: #f8fafc;
+  --accent:       #3b82f6;
+  --accent-dark:  #1d4ed8;
+  --operator-bg:  #eff6ff;
+  --operator-txt: #1d4ed8;
+  --number-bg:    #f8fafc;
+  --number-txt:   #1e293b;
+  --clear-bg:     #fee2e2;
+  --clear-txt:    #dc2626;
+  --special-bg:   #f0fdf4;
+  --special-txt:  #16a34a;
+  --equals-bg:    #3b82f6;
+  --equals-txt:   #ffffff;
+  --shadow-sm:    0 2px 8px rgba(0,0,0,.07);
+  --shadow-card:  0 20px 60px rgba(0,0,0,.12);
+  --radius-btn:   14px;
+  --radius-card:  24px;
+}
+
+/* Dark mode overrides */
+body.dark-mode {
+  --bg:           #0f172a;
+  --card-bg:      #1e293b;
+  --display-bg:   #020617;
+  --operator-bg:  #1e3a5f;
+  --operator-txt: #93c5fd;
+  --number-bg:    #293548;
+  --number-txt:   #e2e8f0;
+  --clear-bg:     #3f1212;
+  --clear-txt:    #fca5a5;
+  --special-bg:   #0f2e1a;
+  --special-txt:  #4ade80;
+  --equals-bg:    #1d4ed8;
+  --shadow-card:  0 20px 60px rgba(0,0,0,.4);
+}
+
+/* ── Reset & Base ──────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'DM Mono', monospace;
+  transition: background .3s;
+}
+
+/* ── Page wrapper ──────────────────────────────────────── */
+.page-wrapper {
+  width: 100%;
+  max-width: 380px;
+  padding: 20px 16px;
+}
+
+/* ── Header card ───────────────────────────────────────── */
+.header-card {
+  background: var(--header-bg);
+  border-radius: var(--radius-card) var(--radius-card) 0 0;
+  padding: 20px 24px 18px;
+  text-align: center;
+}
+
+.group-header {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 800;
+  letter-spacing: 3px;
+  color: #f8fafc;
+  text-transform: uppercase;
+}
+
+.sub-header {
+  font-size: 0.72rem;
+  color: #94a3b8;
+  margin-top: 4px;
+  letter-spacing: 0.3px;
+}
+
+/* ── Calculator card ───────────────────────────────────── */
+.calculator-card {
+  background: var(--card-bg);
+  border-radius: 0 0 var(--radius-card) var(--radius-card);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  transition: background .3s;
+}
+
+.card-body {
+  padding: 24px;
+}
+
+/* ── Display ───────────────────────────────────────────── */
+.display-container {
+  background: var(--display-bg);
+  border-radius: 16px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+}
+
+#result {
+  width: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--display-text);
+  font-family: 'DM Mono', monospace;
+  font-size: 2.2rem;
+  font-weight: 500;
+  text-align: right;
+  caret-color: transparent;
+}
+
+#result::placeholder { color: #475569; }
+
+/* ── Button grid ───────────────────────────────────────── */
+.btn-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+/* Last row: . 0 =  — equals spans 2 columns */
+.btn-grid .btn:nth-last-child(1) { grid-column: span 2; }
+
+/* ── Shared button base ────────────────────────────────── */
+.btn {
+  height: 62px;
+  border: none;
+  border-radius: var(--radius-btn);
+  font-family: 'DM Mono', monospace;
+  font-size: 1.15rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: transform .12s, box-shadow .12s, filter .12s;
+  box-shadow: var(--shadow-sm);
+}
+
+.btn:hover  { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,.13); }
+.btn:active { transform: translateY(0);    filter: brightness(.92); box-shadow: none; }
+
+/* ── Button variants ───────────────────────────────────── */
+.btn-number   { background: var(--number-bg);   color: var(--number-txt); }
+.btn-operator { background: var(--operator-bg); color: var(--operator-txt); font-size: 1.3rem; }
+.btn-action   { background: var(--clear-bg);    color: var(--clear-txt); }
+.btn-special  { background: var(--special-bg);  color: var(--special-txt); }
+.btn-equals   { background: var(--equals-bg);   color: var(--equals-txt);
+                font-size: 1.4rem; font-weight: 700; }
+.btn-equals:hover { filter: brightness(1.1); }
+
+/* ── Theme toggle ──────────────────────────────────────── */
+.theme-toggle-btn {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  z-index: 1000;
+  background: var(--card-bg);
+  border: none;
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: background .3s;
+}
+
+/* ── Responsive ────────────────────────────────────────── */
+@media (max-width: 420px) {
+  .btn { height: 56px; font-size: 1rem; }
+  #result { font-size: 1.8rem; }
+  .card-body { padding: 16px; }
+}

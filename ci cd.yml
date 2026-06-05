@@ -1,0 +1,196 @@
+# =============================================================
+# VUNA CALCULATOR — CI/CD Pipeline
+# David Zasan Elisha · SEN 482 · Set 2025/26
+# =============================================================
+# Jobs and dependency chain:
+#
+#   lint ──► test ──► audit ──► docker ──► deploy ──► verify
+#
+# Every job needs the one before it to pass (needs:).
+# A failure anywhere stops the chain — broken code never ships.
+# =============================================================
+
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# ─────────────────────────────────────────────────────────────
+# JOB 1 · LINT
+# Runs ESLint on script.js. Fails if any rule is violated.
+# ─────────────────────────────────────────────────────────────
+jobs:
+  lint:
+    name: "1 · Lint (ESLint)"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+
+# ─────────────────────────────────────────────────────────────
+# JOB 2 · UNIT TESTS  (matrix: Node 20 and Node 22)
+# Runs Jest on both Node versions to confirm compatibility.
+# ─────────────────────────────────────────────────────────────
+  test:
+    name: "2 · Tests (Node ${{ matrix.node-version }})"
+    runs-on: ubuntu-latest
+    needs: lint
+
+    strategy:
+      matrix:
+        node-version: ["20", "22"]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Jest tests
+        run: npm test
+
+      - name: Upload coverage report
+        if: matrix.node-version == '22'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 7
+
+# ─────────────────────────────────────────────────────────────
+# JOB 3 · SECURITY AUDIT
+# Runs npm audit. Fails on high or critical vulnerabilities.
+# ─────────────────────────────────────────────────────────────
+  audit:
+    name: "3 · Security Audit (npm audit)"
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run security audit
+        run: npm audit --audit-level=high
+
+# ─────────────────────────────────────────────────────────────
+# JOB 4 · DOCKER BUILD & PUSH
+# Builds the multi-stage image and pushes to DockerHub.
+# Only runs on push to main (not on pull requests).
+# ─────────────────────────────────────────────────────────────
+  docker:
+    name: "4 · Docker Build & Push"
+    runs-on: ubuntu-latest
+    needs: audit
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/vuna-calculator:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/vuna-calculator:${{ github.sha }}
+
+# ─────────────────────────────────────────────────────────────
+# JOB 5 · DEPLOY via FTPS
+# Uploads the static files to the VPS subdomain via FTPS.
+# Only runs on push to main.
+# ─────────────────────────────────────────────────────────────
+  deploy:
+    name: "5 · Deploy (FTPS → VPS)"
+    runs-on: ubuntu-latest
+    needs: docker
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy via FTPS
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server:   ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps
+          port:     21
+          local-dir:  ./
+          server-dir: /
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            **/coverage/**
+            **/calculator.test.js
+            **/eslint.config.js
+            **/package*.json
+            **/Dockerfile
+            **/.dockerignore
+
+# ─────────────────────────────────────────────────────────────
+# JOB 6 · VERIFY DEPLOYMENT
+# Curls the live URL and confirms HTTP 200 is returned.
+# ─────────────────────────────────────────────────────────────
+  verify:
+    name: "6 · Verify Live Deployment"
+    runs-on: ubuntu-latest
+    needs: deploy
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Wait for deployment to settle
+        run: sleep 15
+
+      - name: Check live URL returns HTTP 200
+        run: |
+          STATUS=$(curl -o /dev/null -s -w "%{http_code}" "${{ vars.LIVE_URL }}")
+          echo "HTTP status: $STATUS"
+          if [ "$STATUS" != "200" ]; then
+            echo "❌ Deployment verification failed — expected 200, got $STATUS"
+            exit 1
+          fi
+          echo "✅ Deployment verified — site is live and returning HTTP 200"

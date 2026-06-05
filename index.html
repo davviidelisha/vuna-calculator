@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>David Zasan Elisha — Calculator</title>
+ <link rel="stylesheet" href="assets/css/styles.css" />
+</head>
+
+<body>
+
+  <!-- Theme Toggle -->
+  <button class="theme-toggle-btn" id="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light mode">
+    🌙
+  </button>
+
+  <div class="page-wrapper">
+
+    <!-- Header card -->
+    <div class="header-card">
+      <h4 class="group-header">VUNA CALCULATOR</h4>
+      <p class="sub-header"><i>David Zasan Elisha &mdash; Set 2025/26 Software Engineering</i></p>
+    </div>
+
+    <!-- Calculator card -->
+    <div class="calculator-card">
+      <div class="card-body">
+        <div class="calculator">
+
+          <!-- Display -->
+          <div class="display-container">
+            <input type="text" id="result" placeholder="0" disabled />
+          </div>
+
+          <!-- Button grid: 4 columns -->
+          <!--
+            Layout (row by row):
+            AC   ←   xʸ   ÷
+            7    8    9    ×
+            4    5    6    −
+            1    2    3    +
+            .    0    =    (spans 2 cols via CSS)
+          -->
+          <div class="btn-grid">
+            <!-- Row 1 -->
+            <button class="btn btn-action"    onclick="clearResult()">AC</button>
+            <button class="btn btn-action"    onclick="backspace()">←</button>
+            <button class="btn btn-special"   onclick="appendPower()">x<sup>y</sup></button>
+            <button class="btn btn-operator"  onclick="operatorToResult('/')">÷</button>
+
+            <!-- Row 2 -->
+            <button class="btn btn-number" onclick="appendToResult(7)">7</button>
+            <button class="btn btn-number" onclick="appendToResult(8)">8</button>
+            <button class="btn btn-number" onclick="appendToResult(9)">9</button>
+            <button class="btn btn-operator"  onclick="operatorToResult('*')">×</button>
+
+            <!-- Row 3 -->
+            <button class="btn btn-number" onclick="appendToResult(4)">4</button>
+            <button class="btn btn-number" onclick="appendToResult(5)">5</button>
+            <button class="btn btn-number" onclick="appendToResult(6)">6</button>
+            <button class="btn btn-operator"  onclick="operatorToResult('-')">−</button>
+
+            <!-- Row 4 -->
+            <button class="btn btn-number" onclick="appendToResult(1)">1</button>
+            <button class="btn btn-number" onclick="appendToResult(2)">2</button>
+            <button class="btn btn-number" onclick="appendToResult(3)">3</button>
+            <button class="btn btn-operator"  onclick="operatorToResult('+')">+</button>
+
+            <!-- Row 5: decimal, zero, equals (spans 2) -->
+            <button class="btn btn-number" onclick="appendToResult('.')">.</button>
+            <button class="btn btn-number" onclick="appendToResult(0)">0</button>
+            <button class="btn btn-equals"  onclick="calculateResult()">=</button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /page-wrapper -->
+
+ <script src="assets/js/script.js"></script>
+</body>
+</html>
