@@ -1,0 +1,23 @@
+{
+  "name": "vuna-calculator",
+  "version": "1.0.0",
+  "description": "VUNA Calculator — David Zasan Elisha, SEN 482 Set 2025/26",
+  "main": "assets/js/script.js",
+  "scripts": {
+    "test": "jest --coverage",
+    "lint": "eslint assets/js/script.js",
+    "lint:fix": "eslint assets/js/script.js --fix"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.0",
+    "jest": "^29.7.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "collectCoverageFrom": [
+      "assets/js/script.js"
+    ]
+  },
+  "author": "David Zasan Elisha",
+  "license": "MIT"
+}

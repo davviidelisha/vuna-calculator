@@ -20,7 +20,7 @@ on:
 
 # ─────────────────────────────────────────────────────────────
 # JOB 1 · LINT
-# Runs ESLint on script.js. Fails if any rule is violated.
+# Runs ESLint on assets/js/script.js. Fails if any rule is violated.
 # ─────────────────────────────────────────────────────────────
 jobs:
   lint:
@@ -153,11 +153,11 @@ jobs:
       - name: Deploy via FTPS
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
-          server:   ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftps
-          port:     21
+          server:     ${{ secrets.FTP_SERVER }}
+          username:   ${{ secrets.FTP_USERNAME }}
+          password:   ${{ secrets.FTP_PASSWORD }}
+          protocol:   ftps
+          port:       21
           local-dir:  ./
           server-dir: /public_html/
           exclude: |
@@ -170,6 +170,7 @@ jobs:
             **/package*.json
             **/Dockerfile
             **/.dockerignore
+            **/.github/**
 
 # ─────────────────────────────────────────────────────────────
 # JOB 6 · VERIFY DEPLOYMENT
